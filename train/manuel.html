@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manuel — Dashboards IV temps réel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap');
+  :root{--bg:#1b242d;--card:#2b3640;--card2:#33414e;--line:#3a4854;--txt:#e8eef5;--mut:#9fb3c8;--blue:#64b5e6;--anthr:#25303b;}
+  *{box-sizing:border-box;}
+  body{font-family:'Raleway','Segoe UI',Arial,sans-serif;margin:0;background:var(--bg);color:var(--txt);line-height:1.6;}
+  a{color:var(--blue);text-decoration:none;} a:hover{text-decoration:underline;}
+  header.hero{padding:26px 26px 22px;background:var(--anthr);border-bottom:3px solid var(--blue);}
+  header.hero .wrap{max-width:1000px;margin:0 auto;}
+  header.hero h1{margin:0;font-size:26px;font-weight:800;display:flex;align-items:center;gap:12px;}
+  header.hero .logo{height:34px;vertical-align:middle;}
+  header.hero .sub{color:var(--mut);font-size:14px;margin-top:8px;}
+  main{max-width:1000px;margin:0 auto;padding:0 26px 60px;}
+  nav.toc{background:var(--card);border-radius:12px;padding:14px 18px;margin:22px 0;display:flex;flex-wrap:wrap;gap:8px 18px;}
+  nav.toc b{width:100%;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);}
+  nav.toc a{font-weight:600;font-size:13.5px;}
+  section{margin:34px 0;scroll-margin-top:16px;}
+  h2{font-size:21px;font-weight:800;border-left:4px solid var(--blue);padding-left:12px;margin:0 0 14px;}
+  h3{font-size:16px;font-weight:700;margin:20px 0 8px;color:#fff;}
+  p{margin:8px 0;}
+  .lead{color:var(--mut);font-size:15px;}
+  .card{background:var(--card);border-radius:12px;padding:16px 20px;margin:14px 0;}
+  .card.blue{border-left:4px solid var(--blue);}
+  .tag{display:inline-block;background:var(--blue);color:var(--anthr);font-weight:800;font-size:11px;
+    letter-spacing:.3px;padding:2px 9px;border-radius:10px;text-transform:uppercase;vertical-align:middle;margin-right:6px;}
+  table{border-collapse:collapse;width:100%;background:#2b3640;border-radius:8px;overflow:hidden;margin:10px 0;font-size:13.5px;}
+  th{background:#3a4854;text-align:left;padding:9px 12px;font-size:12px;color:#bcd;text-transform:uppercase;letter-spacing:.3px;}
+  td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top;}
+  td b{color:#fff;}
+  ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+  code{font-family:Consolas,monospace;background:#0f2238;color:#cfe3f5;padding:1px 6px;border-radius:5px;font-size:12.5px;}
+  pre{background:#0f2238;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;
+    font-family:Consolas,monospace;font-size:12.5px;color:#cfe3f5;line-height:1.55;}
+  pre .c{color:#6f8aa3;}
+  .warn{background:#33414e;border-left:4px solid #f59e0b;border-radius:10px;padding:14px 18px;margin:14px 0;font-size:14px;}
+  .warn h3{margin-top:0;color:#fbbf24;}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:12px;margin:2px 4px 2px 0;}
+  .pill.g{background:#14532d;color:#bbf7d0;} .pill.o{background:#7c2d12;color:#fed7aa;}
+  .pill.r{background:#7f1d1d;color:#fecaca;} .pill.b{background:#1e3a5f;color:#bfdbfe;}
+  footer{max-width:1000px;margin:0 auto;padding:20px 26px 50px;color:#67809a;font-size:12px;border-top:1px solid var(--line);}
+</style></head>
+<body>
+<header class="hero"><div class="wrap">
+  <h1><img class="logo" src="assets/logo-idfm-picto.png" alt="Île-de-France Mobilités">Manuel d'utilisation — Dashboards IV temps réel</h1>
+  <div class="sub">Suivi de la qualité de l'Information Voyageur à partir du flux temps réel IDFM. Ce manuel décrit ce que montre chaque dashboard, comment le lire, et les seuils utilisés.</div>
+</div></header>
+
+<main>
+<nav class="toc">
+  <b>Sommaire</b>
+  <a href="#sources">1. Sources</a>
+  <a href="#cockpit">2. Cockpit</a>
+  <a href="#carte">3. Carte</a>
+  <a href="#bus">4. Bus</a>
+  <a href="#qualite">5. Qualité info trafic</a>
+  <a href="#refresh">6. Rafraîchir</a>
+  <a href="#limites">7. Limites</a>
+</nav>
+
+<section id="sources">
+  <h2>1. D'où viennent les données</h2>
+  <p class="lead">Tous les dashboards s'alimentent de l'<b>API PRIM Île-de-France Mobilités</b>.</p>
+  <div class="card">
+    <ul>
+      <li><b>SIRI Lite <code>estimated-timetable</code></b> — passages temps réel « à la ligne » (ferré, métro, tram, bus). Source des retards, de la carte, de l'observabilité et du validateur.</li>
+      <li><b>Navitia <code>line_reports</code></b> — perturbations / info trafic déclarées par ligne. Source du croisement « retards × info trafic » et de la qualité info trafic.</li>
+    </ul>
+    <p>Clé API lue depuis <code>IDFM_API_KEY</code>, sinon depuis <code>config.json</code> (racine de <code>Dashboards_IA/</code>). Les données sont des <b>instantanés (snapshots)</b> horodatés — chaque page indique sa date/heure de collecte (heure de Paris).</p>
+  </div>
+</section>
+
+<section id="cockpit">
+  <h2>2. Cockpit « Bilan IV temps réel »</h2>
+  <p class="lead">Le dashboard principal (<code>bilan_iv_temps_reel.html</code>) réunit 4 vues du flux <b>ferré</b> dans une page à onglets.</p>
+  <div class="card blue">
+    <p><b>En haut de page :</b></p>
+    <ul>
+      <li><b>Bandeau provenance</b> : source + heure de rafraîchissement de chaque vue (dérivé automatiquement, jamais obsolète).</li>
+      <li><b>Filtre lignes</b> (bouton en haut à droite) : <b>commun aux 4 onglets</b> — cocher/décocher une ligne la masque partout (tableaux + graphe).</li>
+    </ul>
+  </div>
+
+  <h3><span class="tag">Onglet</span> Bilan retards</h3>
+  <p>Part des trains <b>en retard par ligne</b>, sur la journée. Un train est « en retard » si son <b>retard maximum sur le trajet ≥ 3 min</b> (cumulé sur toutes les passes). <b>Ferré uniquement</b> : métro/tram sont en temps réel pur (pas d'horaire théorique) → retard non mesurable, donc exclus. Graphe empilé (<span class="pill r">En retard</span> couleur = ligne + <span class="pill b">À l'heure</span>) et tableau détaillé.</p>
+
+  <h3><span class="tag">Onglet</span> Retards × info trafic</h3>
+  <p>Croise, <b>ligne par ligne</b>, les retards temps réel et les perturbations Navitia actives. Répond à : « cette ligne a-t-elle à la fois des retards ET de l'info trafic déclarée ? »</p>
+  <div class="warn" style="border-left-color:#f59e0b;"><b>⚠️ C'est une juxtaposition au niveau ligne, pas une corrélation causale</b> : la perturbation affichée n'explique pas forcément un retard précis (voir §7).</div>
+
+  <h3><span class="tag">Onglet</span> Observabilité du flux</h3>
+  <p>Qualité du <b>flux SIRI lui-même</b> (43 lignes, tous modes) :</p>
+  <ul>
+    <li><b>% préd. instables</b> : couples (train, arrêt) dont l'horaire estimé bouge de &gt; 1 min entre snapshots.</li>
+    <li><b>Volatilité</b> (méd./p90) : amplitude des changements de prédiction.</li>
+    <li><b>Fraîcheur médiane</b> : âge de la donnée = <code>ResponseTimestamp − RecordedAtTime</code>.</li>
+    <li><b>% théorique non rafraîchi</b> : trains non mis à jour depuis &gt; 1 h.</li>
+    <li><b>Suppressions silencieuses</b> : trains disparus alors que leur passage était à venir, <b>sans statut <code>cancelled</code></b> — hors faux positifs dont le passage était imminent (≤ 5 min après la dernière observation).</li>
+  </ul>
+
+  <h3><span class="tag">Onglet</span> Validateur de cohérence</h3>
+  <p>Contrôle <b>automatique des anomalies</b> du flux (43 lignes) + <b>score de qualité par ligne</b>. Anomalies regroupées par (type, ligne) avec <i>id</i>, <i>Nb courses</i>, <i>Précision</i> et 2 <code>DatedVehicleJourneyRef</code> (le reste au survol). En bas de l'onglet : le <b>référentiel des balises SIRI</b> à monitorer.</p>
+  <p><b>Types d'anomalies &amp; seuils :</b></p>
+  <table>
+    <thead><tr><th>Type</th><th>Déclencheur</th></tr></thead>
+    <tbody>
+      <tr><td><b>Statut incohérent</b></td><td><code>DepartureStatus</code> = ON_TIME mais retard &gt; 5 min</td></tr>
+      <tr><td><b>Prédiction non monotone</b></td><td>horaire estimé décroissant le long du parcours</td></tr>
+      <tr><td><b>Prédiction volatile</b></td><td>horaire estimé qui bouge de &gt; <b>5 min</b> entre 2 snapshots</td></tr>
+      <tr><td><b>Retard aberrant</b></td><td>retard &gt; 120 min</td></tr>
+      <tr><td><b>Avance suspecte</b></td><td>avance &gt; 10 min</td></tr>
+      <tr><td><b>Chute de volumétrie</b></td><td>−40 % de trains entre snapshots</td></tr>
+      <tr><td><b>Flux gelé</b></td><td><code>ResponseTimestamp</code> identique entre 2 snapshots</td></tr>
+      <tr><td><b>Latence API</b></td><td>réponse &gt; 6000 ms</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="carte">
+  <h2>3. Carte temps réel</h2>
+  <p class="lead">Position des trains interpolée le long du tracé réel (<code>carte.html</code>).</p>
+  <div class="card">
+    <p><b>Bordure du train = retard :</b>
+      <span class="pill g">à l'heure ≤ 1 min</span>
+      <span class="pill o">léger ≤ 5</span>
+      <span class="pill r">fort &gt; 5</span>
+      <span class="pill b">temps réel (sans horaire)</span></p>
+    <ul>
+      <li><b>Filtre (haut droite)</b> : par mode, par ligne, et par <b>catégorie de retard</b> (En retard / À l'heure / En avance / Temps réel). Un train s'affiche si sa ligne <b>et</b> sa catégorie sont cochées.</li>
+      <li><b>Panneau « 🔴 Trains en retard »</b> (haut gauche) : récapitulatif cliquable, trié par retard décroissant — un clic centre la carte sur le train et ouvre sa fiche.</li>
+      <li><b>Recherche</b> (bas gauche) : par destination ou <code>DatedVehicleJourneyRef</code>.</li>
+      <li><b>Clic gare</b> : prochains passages. <b>Clic ligne</b> : perturbations actives (cause probable des retards).</li>
+    </ul>
+  </div>
+</section>
+
+<section id="bus">
+  <h2>4. Bus — IV &amp; régularité</h2>
+  <p class="lead">Qualité du temps réel et régularité des bus, par réseau (<code>visualisations/bus/bus_iv_franconville.html</code>, sélecteur : 5 réseaux).</p>
+  <div class="card">
+    <ul>
+      <li><b>NO_REPORT</b> = passage <b>annoncé mais jamais suivi</b> par un véhicule géolocalisé = <i>faux temps réel</i> (indicateur IV clé).</li>
+      <li><b>% de suivi</b> = passages réellement géolocalisés / passages annoncés.</li>
+      <li><b>Régularité</b> (retard médian, ponctualité) calculée <b>uniquement sur les passages suivis</b>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="qualite">
+  <h2>5. Qualité info trafic</h2>
+  <p class="lead">Note la qualité rédactionnelle des messages de perturbation, par transporteur/réseau (<code>visualisations/infotrafic/qualite_linereports.html</code>).</p>
+  <div class="card">
+    <p>Chaque message est noté <b>/100 sur 4 axes</b> (score global = leur moyenne) :
+      <b>Complétude</b> · <b>Lisibilité</b> · <b>Hygiène</b> · <b>Informativité</b> (la plus discriminante).
+      Barème ancré sur les <b>Prescriptions IVC IDFM (Vol. 1 Bus, 2023)</b>.</p>
+    <p>Vue « Détail réseau » : radar du profil + détail par axe + perturbations à améliorer.</p>
+  </div>
+</section>
+
+<section id="refresh">
+  <h2>6. Rafraîchir les données</h2>
+  <p class="lead">Une seule commande rafraîchit tout, depuis <code>Dashboards_IA/</code> : <code>py rafraichir_tout.py</code>. Le détail (ordre, durées, options) est dans le <code>README.md</code>, section « Rafraîchir toutes les données ». Pour lancer une étape isolée (les 4 sources du cockpit s'écrivent dans <code>visualisations/train/archive/</code>) :</p>
+<pre><span class="c"># Cockpit (ferré)</span>
+py Tchoutchou/scripts/validateur_siri.py collect 3 30    &amp;&amp; py Tchoutchou/scripts/validateur_siri.py validate
+py Tchoutchou/scripts/observabilite_siri.py collect 5 45 &amp;&amp; py Tchoutchou/scripts/observabilite_siri.py report
+py Tchoutchou/scripts/infos_trafic.py
+py Tchoutchou/scripts/collecte_retards.py   (×N, puis)   py Tchoutchou/scripts/bilan_retards.py
+py Tchoutchou/scripts/build_cockpit.py  <span class="c"># reconstruit le cockpit (toujours en dernier)</span>
+
+<span class="c"># Dashboards autonomes</span>
+py Tchoutchou/scripts/carte_trains.py
+py Bus/iv_regularite_bus.py          <span class="c"># sans argument = les 5 réseaux</span>
+py InfoTrafic/qualite_linereports.py
+py Theorique/poc_offre_vs_circulation.py
+py Theorique/poc_recherche_arret.py
+py Referentiels/veille_referentiels.py --refresh</pre>
+  <div class="card blue">
+    <p>Les KPI et sous-titres du cockpit sont <b>dérivés automatiquement</b> des dashboards — aucune saisie manuelle après un refresh.</p>
+    <p>Le <b>bilan retards</b> reflète l'instant de collecte (pas une journée entière, sauf collecte répétée via <code>collecte_retards.py loop 3</code>).</p>
+  </div>
+</section>
+
+<section id="limites">
+  <h2>7. Limites &amp; réserves</h2>
+  <div class="warn">
+    <h3>À connaître avant de conclure</h3>
+    <ul>
+      <li><b>Croisement info trafic × temps réel</b> : au niveau ligne, <b>pas causal</b>. Une perturbation ≠ cause prouvée d'un retard précis. Piste : descendre à la maille gare/tronçon.</li>
+      <li><b>Métro / tram</b> : temps réel pur (pas d'<code>AimedTime</code>) → retard non mesurable ; leurs contrôles se limitent aux règles non-théoriques (volatilité, doublon, macro).</li>
+      <li><b>Seuils</b> (3 min, 5 min, 120 min…) : choix méthodologiques <b>ajustables</b>, pas des définitions officielles IDFM/SIRI.</li>
+      <li><b>Aucune documentation officielle</b> (norme SIRI, prescriptions IDFM) n'a été fournie : ce manuel décrit <b>ce que fait le code</b>, pas la norme. À faire valider par l'expertise métier.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer>Manuel généré à partir du code des dashboards — IV temps réel IDFM. Les seuils et critères sont ajustables ; à valider avec les prescriptions officielles.</footer>
+<a href="../index.html" style="position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:99999;background:#64B5F6;color:#25303B;font:600 13px 'Segoe UI',Arial,sans-serif;padding:6px 12px;border-radius:4px;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.25)">&lt;- Accueil</a>
+</body></html>

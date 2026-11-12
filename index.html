@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboards IV temps réel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Vitrine : en-tête bleu clair en dégradé, grille asymétrique d'aperçus (une carte large par rangée), pied anthracite.
+   Charte IDFM, thème clair assumé : vert et orange réservés à la fraîcheur des données. */
+:root {
+  --ink: #25303B; --ink-2: #4E5B68; --bleu: #64B5F6; --bleu-fonce: #1972D2;
+  --fond: #F5F9FF; --fond-2: #DEEEFF; --blanc: #FFFFFF; --trait: #D3E4F7;
+  --ok: #1E7F45; --ok-bg: #E3F4EA; --warn: #8A5300; --warn-bg: #FFF0D9;
+  --font: 'Segoe UI', 'Segoe UI Web', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --gutter-l: max(20px, env(safe-area-inset-left, 0px)); --gutter-r: max(20px, env(safe-area-inset-right, 0px));
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--fond); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.5; }
+.in { max-width: 1200px; margin: 0 auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+
+/* En-tête */
+.entete { background: linear-gradient(135deg, #DEEEFF 0%, #C4E1FB 55%, #9FD0F8 100%); position: relative; overflow: hidden; }
+.entete::after { content: ""; position: absolute; right: -120px; top: -160px; width: 520px; height: 520px; border-radius: 50%;
+  border: 70px solid rgba(255,255,255,.35); pointer-events: none; }
+.entete .in { position: relative; z-index: 1; padding-block: 48px 40px; }
+.surtitre { font-size: 12.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--bleu-fonce); margin: 0 0 10px; }
+h1 { font-size: clamp(30px, 4.6vw, 48px); line-height: 1.08; font-weight: 700; margin: 0 0 14px; letter-spacing: -.01em; text-wrap: balance; max-width: 18ch; }
+.chapo { font-size: 17px; color: var(--ink-2); margin: 0 0 22px; max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14.5px;
+  text-decoration: none; transition: background .15s, box-shadow .15s; }
+.btn.primaire { background: var(--ink); color: #fff; }
+.btn.primaire:hover { background: #1972D2; }
+.btn.second { background: rgba(255,255,255,.75); color: var(--ink); box-shadow: inset 0 0 0 1px rgba(37,48,59,.18); }
+.btn.second:hover { background: #fff; }
+.themes { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 16px; }
+.themes li { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px 5px 9px; background: rgba(255,255,255,.7);
+  border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+.themes .picto { width: 18px; height: 18px; color: var(--bleu-fonce); }
+.maj { font-size: 13px; color: var(--ink-2); margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Grille d'aperçus */
+main { padding-block: 36px 48px; }
+.titre-grille { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 20px; margin-bottom: 18px; }
+h2 { font-size: 22px; margin: 0; }
+.titre-grille p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.grille { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 700px) { .grille { grid-template-columns: repeat(2, 1fr); } .carte.large { grid-column: span 2; } }
+@media (min-width: 1040px) { .grille { grid-template-columns: repeat(3, 1fr); } .carte.large, .carte.large-fin { grid-column: span 2; } }
+
+.carte { display: flex; flex-direction: column; min-width: 0; background: var(--blanc); border: 1px solid var(--trait); border-radius: 10px;
+  overflow: hidden; color: var(--ink); text-decoration: none; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.carte:hover { transform: translateY(-3px); border-color: var(--bleu); box-shadow: 0 10px 28px rgba(25,114,210,.14); }
+.carte:focus-visible { outline: 3px solid var(--bleu-fonce); outline-offset: 3px; }
+.apercu { display: block; aspect-ratio: 16 / 10; max-width: 100%; background: var(--fond-2); border-bottom: 1px solid var(--trait); overflow: hidden; }
+.apercu img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform .4s; }
+.carte:hover .apercu img { transform: scale(1.03); }
+.vide { display: grid; place-items: center; width: 100%; height: 100%; color: var(--bleu); }
+.picto-xl { width: 64px; height: 64px; }
+.corps { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px 16px; flex: 1; min-width: 0; }
+.theme { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--bleu-fonce); }
+.theme .picto { width: 16px; height: 16px; }
+.titre { font-size: 19px; font-weight: 700; line-height: 1.25; }
+.desc { color: var(--ink-2); font-size: 14.5px; flex: 1; }
+.pied { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.etat { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  font-variant-numeric: tabular-nums; }
+.etat i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.etat.ok { background: var(--ok-bg); color: var(--ok); }
+.etat.warn { background: var(--warn-bg); color: var(--warn); }
+.ouvrir { font-weight: 600; font-size: 14px; color: var(--bleu-fonce); }
+
+/* Cartes larges : aperçu à gauche, texte à droite */
+@media (min-width: 1040px) {
+  .carte.large, .carte.large-fin { flex-direction: row; }
+  .carte.large .apercu, .carte.large-fin .apercu { flex: 0 0 58%; aspect-ratio: auto; min-height: 290px; border-bottom: 0; border-right: 1px solid var(--trait); }
+  .carte.large .corps, .carte.large-fin .corps { padding: 26px 26px 22px; justify-content: center; }
+  .carte.large .titre, .carte.large-fin .titre { font-size: 24px; }
+  .carte.large .desc, .carte.large-fin .desc { flex: 0 1 auto; font-size: 15.5px; }
+}
+
+/* Pied de page */
+footer { background: var(--ink); color: #E6EDF5; }
+footer .in { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; padding-block: 28px 28px; }
+footer .txt { min-width: 0; max-width: 72ch; font-size: 13.5px; }
+footer p { margin: 0 0 6px; }
+footer a { color: var(--bleu); }
+footer .logo { height: 46px; width: auto; background: #fff; padding: 6px 10px; border-radius: 6px; margin-left: auto; }
+
+@media (prefers-reduced-motion: reduce) { .carte, .apercu img, .btn { transition: none; } .carte:hover { transform: none; } .carte:hover .apercu img { transform: none; } }
+
+body { margin: 0; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+
+<header class="entete"><div class="in">
+  <p class="surtitre">Île-de-France · information voyageurs</p>
+  <h1>Dashboards IV temps réel</h1>
+  <p class="chapo">Ce que l'information voyageurs publie vraiment, mesuré chaque jour à partir des API PRIM : retards, trains et bus réellement suivis, lignes muettes, qualité des messages et évolutions des référentiels.</p>
+  <div class="actions">
+    <a class="btn primaire" href="train/bilan_iv_temps_reel.html">Ouvrir le cockpit ferré -&gt;</a>
+    <a class="btn second" href="train/manuel.html">Comment lire les dashboards</a>
+  </div>
+  <ul class="themes"><li><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/><path d="M4 10h16"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><path d="M8 17l-2 4M16 17l2 4"/></svg>Ferré</li><li><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="2.5"/><path d="M4 11h16M8 3v8"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/><path d="M6 18v3M18 18v3"/></svg>Bus</li><li><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8v3.5"/><circle cx="12" cy="13.5" r=".6"/></svg>Info trafic</li><li><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>Offre théorique</li><li><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.6 3.4 2.8 7.5 2.8s7.5-1.2 7.5-2.8V6"/><path d="M4.5 12c0 1.6 3.4 2.8 7.5 2.8s7.5-1.2 7.5-2.8"/></svg>Référentiels</li></ul>
+  <p class="maj">Rafraîchi chaque jour vers 8 h · dernière mise à jour le 12/11/2026 à 20:10</p>
+</div></header>
+
+<main><div class="in">
+  <div class="titre-grille">
+    <h2>Les tableaux de bord</h2>
+    <p>Chaque page est un instantané : la pastille indique la date de ses données.</p>
+  </div>
+  <div class="grille"><a class="carte large" href="train/bilan_iv_temps_reel.html"><span class="apercu"><img src="apercus/bilan_iv_temps_reel.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/><path d="M4 10h16"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><path d="M8 17l-2 4M16 17l2 4"/></svg>Ferré</span><span class="titre">Cockpit ferré</span><span class="desc">La vue d&#x27;ensemble du ferré : retards du jour, info trafic, santé et contrôle du flux SIRI ET, ligne par ligne, pour le RER, le Transilien, le métro et le tram.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 18:09</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte " href="train/carte.html"><span class="apercu"><img src="apercus/carte.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/><path d="M4 10h16"/><circle cx="8.5" cy="13.5" r="1"/><circle cx="15.5" cy="13.5" r="1"/><path d="M8 17l-2 4M16 17l2 4"/></svg>Ferré</span><span class="titre">Carte des trains</span><span class="desc">Position estimée de chaque train, colorée selon son retard, sur le tracé officiel des lignes.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:57</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte " href="bus/bus_iv_franconville.html"><span class="apercu"><img src="apercus/bus_iv_franconville.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="15" rx="2.5"/><path d="M4 11h16M8 3v8"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/><path d="M6 18v3M18 18v3"/></svg>Bus</span><span class="titre">Bus : suivi et régularité</span><span class="desc">Par réseau, part des passages réellement suivis par un véhicule et régularité des lignes.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:58</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte " href="infotrafic/qualite_linereports.html"><span class="apercu"><img src="apercus/qualite_linereports.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 8v3.5"/><circle cx="12" cy="13.5" r=".6"/></svg>Info trafic</span><span class="titre">Qualité de l&#x27;info trafic</span><span class="desc">Note des messages de perturbation par transporteur : complétude, lisibilité, hygiène, informativité.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:58</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte " href="theorique/poc_offre_vs_circulation.html"><span class="apercu"><img src="apercus/poc_offre_vs_circulation.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>Offre théorique</span><span class="titre">Lignes muettes</span><span class="desc">Les lignes qui devraient circuler d&#x27;après l&#x27;offre théorique mais ne publient aucune course en temps réel.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:57</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte " href="theorique/poc_recherche_arret.html"><span class="apercu"><img src="apercus/poc_recherche_arret.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>Offre théorique</span><span class="titre">Recherche d&#x27;arrêt</span><span class="desc">Prochains passages d&#x27;un arrêt, ligne par ligne, et lignes muettes à cet arrêt.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:58</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a><a class="carte large-fin" href="referentiels/veille_referentiels.html"><span class="apercu"><img src="apercus/veille_referentiels.jpg" alt="" loading="lazy"></span><span class="corps"><span class="theme"><svg class="picto" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.6 3.4 2.8 7.5 2.8s7.5-1.2 7.5-2.8V6"/><path d="M4.5 12c0 1.6 3.4 2.8 7.5 2.8s7.5-1.2 7.5-2.8"/></svg>Référentiels</span><span class="titre">Veille des référentiels</span><span class="desc">Créations, modifications et suppressions de lignes et d&#x27;arrêts publiées en open data, jour par jour.</span><span class="pied"><span class="etat ok"><i></i>Données du 12/11 à 17:59</span><span class="ouvrir">Ouvrir -&gt;</span></span></span></a></div>
+</div></main>
+
+<footer><div class="in">
+  <div class="txt">
+    <p>Sources : API PRIM (SIRI Lite, Navitia) et open data d'Île-de-France Mobilités.</p>
+    <p>Outils d'analyse réalisés pour le projet Relais IVTR. Ce n'est pas un service officiel d'Île-de-France Mobilités.</p>
+  </div>
+  <img class="logo" src="assets/idfm_logo_coin.png" alt="Île-de-France Mobilités">
+</div></footer>
+
+</body>
+</html>
